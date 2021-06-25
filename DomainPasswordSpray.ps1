@@ -163,7 +163,7 @@ function Invoke-DomainPasswordSpray{
 
     if ($UserList -eq "")
     {
-        $UserListArray = Get-DomainUserList -Domain $Domain -RemoveDisabled -RemovePotentialLockouts -Filter $Filter
+        $UserListArray = Get-DomainUserList -Domain $Domain -RemoveDisabled -RemovePotentialLockouts -Filter $Filter -TimeBetweenSpray $TimeBetweenSpray
     }
     else
     {
@@ -297,6 +297,10 @@ function Get-DomainUserList
     .PARAMETER Filter
 
     Custom LDAP filter for users, e.g. "(description=*admin*)"
+    
+    .PARAMETER TimeBetweenSpray
+    
+    Amount of time between sprays ( default: automatic )
 
     .EXAMPLE
 
@@ -331,6 +335,10 @@ function Get-DomainUserList
      [Parameter(Position = 3, Mandatory = $false)]
      [string]
      $Filter
+     
+     [Parameter(Position = 10, Mandatory = $false)]
+     [int]
+     $TimeBetweenSpray=0
     )
 
     try
