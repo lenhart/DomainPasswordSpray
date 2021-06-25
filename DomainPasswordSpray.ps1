@@ -197,7 +197,7 @@ function Invoke-DomainPasswordSpray{
     }
     else
     {
-        $observation_window = Get-ObservationWindow
+        $observation_window = Get-ObservationWindow $CurrentDomain
     }
 
     Write-Host -ForegroundColor Yellow "[*] The domain password policy observation window is set to $observation_window minutes."
@@ -391,7 +391,14 @@ function Get-DomainUserList
         }
     }
 
-    $observation_window = Get-ObservationWindow $CurrentDomain
+    if ($TimeBetweenSpray)
+    {
+        $observation_window = $TimeBetweenSpray
+    }
+    else
+    {
+        $observation_window = Get-ObservationWindow $CurrentDomain
+    }
 
     # Generate a userlist from the domain
     # Selecting the lowest account lockout threshold in the domain to avoid
