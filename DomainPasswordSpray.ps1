@@ -484,7 +484,7 @@ function Get-DomainUserList
     }
 
     $UserSearcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$CurrentDomain)
-    $DirEntry = New-Object System.DirectoryServices.DirectoryEntry
+    $DirEntry = New-Object System.DirectoryServices.DirectoryEntry($CurrentDomain)
     $UserSearcher.SearchRoot = $DirEntry
 
     $UserSearcher.PropertiesToLoad.Add("samaccountname") > $Null
@@ -603,7 +603,7 @@ function Invoke-SpraySinglePassword
     $curr_user = 0
     if ($OutFile -ne ""-and -not $Quiet)
     {
-        Write-Host -ForegroundColor Yellow "[*] Writing successes to $OutFile"    
+        Write-Host -ForegroundColor Yellow "[*] Writing successes to $OutFile"
     }
     $RandNo = New-Object System.Random
 
