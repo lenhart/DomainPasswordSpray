@@ -334,7 +334,7 @@ function Get-DomainUserList
 
      [Parameter(Position = 3, Mandatory = $false)]
      [string]
-     $Filter
+     $Filter,
      
      [Parameter(Position = 10, Mandatory = $false)]
      [int]
