@@ -534,8 +534,11 @@ function Get-DomainUserList
             }
             catch
             {
-                if($badcount -eq "null")
-                $UserListArray += $samaccountname
+                if($badcount -eq "null") 
+                {
+                    #$UserListArray += $samaccountname
+                    Write-Host -foregroundcolor "yellow" ("[*] Unable to read badpwdcount property for user " + $samaccountname + ". This could mean that the user never logged on, never typed her password wrong, or that we are unable to read the property (deny read). In the latter we'd risk locking out users, therefore user hasn't been added.")
+                }
                 continue
             }
             $currenttime = Get-Date
@@ -550,7 +553,7 @@ function Get-DomainUserList
                 # or if the time since the last failed login is greater than the domain
                 # observation window add user to spray list
                 if (($timedifference -gt $observation_window) -or ($attemptsuntillockout -ge $MinAttemptsUntilLockout))
-                                {
+                {
                     $UserListArray.Add($samaccountname)
                 }
             }
