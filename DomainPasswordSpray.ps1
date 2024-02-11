@@ -484,7 +484,7 @@ function Get-DomainUserList
     }
 
     $UserSearcher = New-Object System.DirectoryServices.DirectorySearcher([ADSI]$CurrentDomain)
-    $DirEntry = New-Object System.DirectoryServices.DirectoryEntry
+    $DirEntry = New-Object System.DirectoryServices.DirectoryEntry($CurrentDomain)
     $UserSearcher.SearchRoot = $DirEntry
 
     $UserSearcher.PropertiesToLoad.Add("samaccountname") > $Null
@@ -534,6 +534,11 @@ function Get-DomainUserList
             }
             catch
             {
+                if($badcount -eq "null") 
+                {
+                    #$UserListArray += $samaccountname
+                    Write-Host -foregroundcolor "yellow" ("[*] Unable to read badpwdcount property for user " + $samaccountname + ". This could mean that the user never logged on, never typed her password wrong, or that we are unable to read the property (deny read). In the latter we'd risk locking out users, therefore user hasn't been added.")
+                }
                 continue
             }
             $currenttime = Get-Date
@@ -548,7 +553,7 @@ function Get-DomainUserList
                 # or if the time since the last failed login is greater than the domain
                 # observation window add user to spray list
                 if (($timedifference -gt $observation_window) -or ($attemptsuntillockout -ge $MinAttemptsUntilLockout))
-                                {
+                {
                     $UserListArray.Add($samaccountname)
                 }
             }
@@ -603,7 +608,7 @@ function Invoke-SpraySinglePassword
     $curr_user = 0
     if ($OutFile -ne ""-and -not $Quiet)
     {
-        Write-Host -ForegroundColor Yellow "[*] Writing successes to $OutFile"    
+        Write-Host -ForegroundColor Yellow "[*] Writing successes to $OutFile"
     }
     $RandNo = New-Object System.Random
 
